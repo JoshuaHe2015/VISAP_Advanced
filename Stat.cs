@@ -10,7 +10,7 @@ namespace Stat
     {
         //对BigNumber数组求均值。将所有数字加起来除以n。
         //调用时参数为BigNumber数组，返回为BigNumber值。
-        static BigNumber Mean(BigNumber[] NumberSeries)
+        public static BigNumber Mean(BigNumber[] NumberSeries)
         {
             BigNumber sum = new BigNumber("0");
             foreach (BigNumber SingleNumber in NumberSeries)
@@ -23,7 +23,7 @@ namespace Stat
         }
         //输入为BigNumber数组，返回为BigNumber值
         //n - 1个自由度
-        static BigNumber Variance(BigNumber[] NumberSeries)
+        public static BigNumber Variance(BigNumber[] NumberSeries)
         {
             BigNumber sum = new BigNumber("0");
             int len = NumberSeries.Length;
@@ -36,7 +36,7 @@ namespace Stat
         }
         //sort功能可以对BigNumber数组进行排序。没有返回值。
         //如果有需要之后可以修改这个环节，使之返回新数组。
-        static void Sort(int n, BigNumber[] NumberSeries)
+        public static void Sort(int n, BigNumber[] NumberSeries)
         {
             BigNumber temp = new BigNumber("0");
             if (n <= 1)
@@ -57,16 +57,16 @@ namespace Stat
         //Quantile用来求分位数
         //输入BigNumber数组，以及所需分位数的位置
         //位置为0～1之间的小数
-        static BigNumber Quantile(BigNumber[] NumberSeries, double quan)
+        public static BigNumber Quantile(BigNumber[] NumberSeries, double quan)
         {
             int len = NumberSeries.Length;
             double position = quan * (double)len;
-            position = Convert.ToDouble(round(position.ToString(), 0));
+            position = Convert.ToDouble(MathV.round(position.ToString(), 0,0));
             return NumberSeries[Convert.ToInt32(position - 1)];
         }
         //仅限于寻找有序数列中的众数
         //多个众数时返回最小的众数
-        static string Mode(BigNumber[] NumberSeries)
+        public static string Mode(BigNumber[] NumberSeries)
         {
             
             double MaxCount = 0;
@@ -103,7 +103,7 @@ namespace Stat
         //分位数计算统一用double
         //Beta的累积密度函数，a，b为自由度
         //x在0～1之间
-        static double BetaCDF(double x, double a, double b)
+        public static double BetaCDF(double x, double a, double b)
         {
             int m, n;
             double I = 0, U = 0;
@@ -154,7 +154,7 @@ namespace Stat
         }
         //计算t分布的累积密度函数
         //v为自由度
-        static double TDIST(double x, int v)
+        public static double TDIST(double x, int v)
         {
             double t, prob;
             t = v / (v + x * x);
@@ -170,7 +170,7 @@ namespace Stat
         }
         //计算F的累积密度函数
         //m，n为两个自由度
-        static double FCDF(double x, int m, int n)
+        public static double FCDF(double x, int m, int n)
         {
             double y, prob;
             if (x <= 0)
@@ -183,7 +183,7 @@ namespace Stat
         }
         //二项分布的累积密度函数
         //事件发生的概率为p
-        static double BinomialCDF(double x, double p, int n)
+        public static double BinomialCDF(double x, double p, int n)
         {
             double prob = 0.0;
             if (x < 0)
@@ -207,7 +207,7 @@ namespace Stat
         //af为概率
         //a，b为自由度
         //返回分位数
-        static double BetaUa(double af, double a, double b)
+        public static double BetaUa(double af, double a, double b)
         {
             int MaxTime = 500;
             int times = 0;
@@ -243,7 +243,7 @@ namespace Stat
         }
         //T分布的分位数
         //af为概率
-        static double TINV(double af, int v)
+        public static double TINV(double af, int v)
         {
             double ua = 0.0, tbp, bf;
             bf = 1 - af;
@@ -261,7 +261,7 @@ namespace Stat
         }
         //F分布的分位数
         //上侧概率分位数
-        static double FdistUa(double af, int m, int n)
+        public static double FdistUa(double af, int m, int n)
         {
             double ua, tbp, bf;
             bf = 1 - af;
@@ -270,7 +270,7 @@ namespace Stat
             return ua;
         }
         //计算卡方分布累积密度函数
-        static double chi2(double x, int Freedom)  
+        public static double chi2(double x, int Freedom)  
         {
             int k, n;
             double f, h, prob;
@@ -303,7 +303,7 @@ namespace Stat
             return prob;
         }
         //这个函数一般无需调用
-        static double chi21(double x, int Freedom)
+        public static double chi21(double x, int Freedom)
         {
             int k, n;
             double f, h, prob;
@@ -336,14 +336,14 @@ namespace Stat
             return prob;
         }
         //Possion分布的累积密度函数
-        static double PossionCDF(double x, double p)
+        public static double PossionCDF(double x, double p)
         {
             double prob = 0.0;
             prob = 1.0 - chi21(2 * p, 2 * ((int)x) + 1);
             return prob;
         }
         //卡方分布的上侧分位数的计算  
-        static double chi2Ua(double af, int Freedom)
+        public static double chi2Ua(double af, int Freedom)
         {
             int times;
             int MaxTime = 500;
@@ -371,7 +371,7 @@ namespace Stat
             return ua;
         }
         //这个函数一般无需调用
-        static double chi2Ua0(double af, int Freedom)
+        public static double chi2Ua0(double af, int Freedom)
         {
             double ua, p, temp;
             if (Freedom == 1)
@@ -392,7 +392,7 @@ namespace Stat
             return ua;
         }
         //卡方分布的密度函数  
-        static double chi2Px(double x, int Freedom)
+        public static double chi2Px(double x, int Freedom)
         {
             double p, g;
             if (x <= 0) return 0.0;
@@ -400,7 +400,7 @@ namespace Stat
             p = 1.0 / Math.Pow(2.0, Freedom / 2.0) / g * Math.Exp(-x / 2.0) * Math.Pow(x, Freedom / 2.0 - 1.0);
             return p;
         }
-        static double Gama(int n)//伽马分布函数Gama(n/2)  
+        public static double Gama(int n)//伽马分布函数Gama(n/2)  
         {
             double g;
             int i, k;
@@ -419,7 +419,7 @@ namespace Stat
             return g;
         }
         //高斯函数
-        static double GaossFx1(double x)
+        public static double GaossFx1(double x)
         {
             double prob = 0, t, temp;
             int i, n, symbol;
@@ -449,7 +449,7 @@ namespace Stat
             if (x < 0)
                 prob = 1.0 - prob; return prob;
         }
-        static double GaossFx(double x)//正态分布函数的计算  
+        public static double GaossFx(double x)//正态分布函数的计算  
         {
             double prob = 0, t, temp;
             int i, n, symbol;
@@ -480,7 +480,7 @@ namespace Stat
                 prob = 1.0 - prob;
             return prob;
         }
-        static double GaossPx(double x)//正态分布的密度函数  
+        public static double GaossPx(double x)//正态分布的密度函数  
         {
             double f;
             f = 1.0 / Math.Sqrt(2.0 * Math.PI) * Math.Exp(-x * x / 2.0);
@@ -582,7 +582,7 @@ namespace Stat
         //type = "Proportion.Test"为比例检验
         //返回为字符串，如： 3.5,7.6  以逗号分隔
         //如果没有输入正确的type则返回NA
-        static string HT1(BigNumber H0, BigNumber Mean, BigNumber Variance, BigNumber Proportion, double Significance, string Tail, string type)
+        public static string HT1(BigNumber H0, BigNumber Mean, BigNumber Variance, BigNumber Proportion, double Significance, string Tail, string type)
         {
             Tail = Tail.ToLower();
             if (type == "Mean.Test")
@@ -609,7 +609,7 @@ namespace Stat
         //type = "Proportion.Test"为比例检验
         //返回为字符串，如： 3.5,7.6  以逗号分隔
         //如果没有输入正确的type则返回NA
-        static string HT1(BigNumber H0, BigNumber Mean1, BigNumber Mean2, BigNumber Variance1, BigNumber Variance2, BigNumber Proportion1, BigNumber Proportion2, double Significance, string Tail, string type)
+        public static string HT1(BigNumber H0, BigNumber Mean1, BigNumber Mean2, BigNumber Variance1, BigNumber Variance2, BigNumber Proportion1, BigNumber Proportion2, double Significance, string Tail, string type)
         {
             Tail = Tail.ToLower();
             if (type == "Mean.Test")
