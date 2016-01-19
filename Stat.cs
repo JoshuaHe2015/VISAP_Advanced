@@ -632,5 +632,30 @@ namespace Stat
                 return "NA";
             }
         }
-    }
+        public static BigNumber Max(BigNumber[] NumberSeries){
+            BigNumber MaxValue = NumberSeries[0];
+            for (int i = 0; i < NumberSeries.Length; i++)
+            {
+                if (CompareNumber.Compare(MaxValue,NumberSeries[i]) == -1)
+                {
+                    //-1为小于
+                    MaxValue = NumberSeries[i];
+                }
+            }
+            return MaxValue;
+        }
+    public static BigNumber Min(BigNumber[] NumberSeries){
+            BigNumber MinValue = NumberSeries[0];
+            for (int i = 0; i < NumberSeries.Length; i++)
+            {
+                if (CompareNumber.Compare(MinValue,NumberSeries[i]) == 1)
+                {
+                    //-1为小于
+                    MinValue = NumberSeries[i];
+                }
+            }
+            return MinValue;
+        }
+    
+}
 }
