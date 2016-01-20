@@ -253,5 +253,31 @@ namespace MathV
             }
             return ProcessedNumber;
         }
+        public double MaxDouble(double[] NumberSeries)
+        {
+            //对Double型数组求最大值
+            double MaxValue = NumberSeries[0];
+            for (int i = 0; i < NumberSeries.Length; i++)
+            {
+                if (MaxValue < NumberSeries[i])
+                {
+                    MaxValue = NumberSeries[i];
+                }
+            }
+            return MaxValue;
+        }
+        public double MinDouble(double[] NumberSeries)
+        {
+            //对Double型数组求最小值
+            double MinValue = NumberSeries[0];
+            for (int i = 0; i < NumberSeries.Length; i++)
+            {
+                if (MinValue > NumberSeries[i])
+                {
+                    MinValue = NumberSeries[i];
+                }
+            }
+            return MinValue;
+        }
     }
 }
