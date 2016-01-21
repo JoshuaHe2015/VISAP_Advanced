@@ -522,18 +522,78 @@ namespace Stat
         //type = "Proportion.Esti"为比例估计
         //返回为字符串，如： 3.5,7.6  以逗号分隔
         //如果没有输入正确的type则返回NA
-        public static string CI1(BigNumber Mean, BigNumber Variance, BigNumber Proportion, double Significance, string Tail,string type)
+        public static string CI1(BigNumber Mean, BigNumber Variance, BigNumber Proportion, BigNumber SampleNum,double Significance, string Tail,string type)
         {
             Tail = Tail.ToLower();
             if (type == "Mean.Esti")
             {
                 //均值估计
-                return "置信区间";
+                BigNumber std = Variance.Power(new BigNumber("0.5"), 30);
+                if (Tail == "two")
+                {
+                    Significance = Significance / 2;
+                    BigNumber lower = Mean - new BigNumber(NORMSINV(Significance).ToString()) * std / SampleNum.Power(new BigNumber("0.5"), 30);
+                    BigNumber upper = Mean + new BigNumber(NORMSINV(Significance).ToString()) * std / SampleNum.Power(new BigNumber("0.5"), 30);
+                    return lower.ToString() + "," + upper.ToString();
+                }
+                else
+                {
+                    if (Tail == "greater") //H0:mu>0
+                    {
+                        Significance = Significance / 1;
+                        BigNumber lower = Mean - new BigNumber(NORMSINV(Significance).ToString()) * std / SampleNum.Power(new BigNumber("0.5"), 30);
+                        return lower.ToString() + ",";
+                    }
+                    else
+                    {
+                        if (Tail == "less") //H0:mu>0
+                        {
+                            Significance = Significance / 1;
+                            BigNumber upper = Mean + new BigNumber(NORMSINV(Significance).ToString()) * std / SampleNum.Power(new BigNumber("0.5"), 30);
+                            return "," + upper.ToString();
+                        }
+                        else
+                        {
+                            return "NA";
+                        }
+                    }
+                }
             }
             else if (type == "Proportion.Esti")
             {
                 //比例估计
-                return "置信区间";
+                BigNumber std = Variance.Power(new BigNumber("0.5"), 30);
+                if (Tail == "two")
+                {
+                    Significance = Significance / 2;
+                    BigNumber lower = Proportion - new BigNumber(NORMSINV(Significance).ToString()) * ((Proportion * (new BigNumber("1") - Proportion)) / (new BigNumber(SampleNum.ToString()))).Power(new BigNumber("0.5"));
+                    BigNumber upper = Proportion + new BigNumber(NORMSINV(Significance).ToString()) * (Proportion * (new BigNumber("1") - Proportion) / (new BigNumber(SampleNum.ToString()))).Power(new BigNumber("0.5"));
+                    return lower.ToString() + "," + upper.ToString();
+                }
+                else
+                {
+                    if (Tail == "greater") //H0:mu>0
+                    {
+                        Significance = Significance / 1;
+                        BigNumber lower = Proportion - new BigNumber(NORMSINV(Significance).ToString()) * ((Proportion * (new BigNumber("1") - Proportion)) / (new BigNumber(SampleNum.ToString()))).Power(new BigNumber("0.5"));
+                        return lower.ToString() + ",";
+                    }
+                    else
+                    {
+                        if (Tail == "less") //H0:mu>0
+                        {
+                            Significance = Significance / 1;
+                            BigNumber upper = Proportion + new BigNumber(NORMSINV(Significance).ToString()) * ((Proportion * (new BigNumber("1") - Proportion)) / (new BigNumber(SampleNum.ToString()))).Power(new BigNumber("0.5"));
+                            return "," + upper.ToString();
+                        }
+                        else
+                        {
+                            return "NA";
+                        }
+                    }
+
+                }
+
             }
             else
             {
@@ -550,23 +610,110 @@ namespace Stat
         //type = "Variance.Esti"为方差比估计
         //返回为字符串，如： 3.5,7.6  以逗号分隔
         //如果没有输入正确的type则返回NA
-        public static string CI2(BigNumber Mean1, BigNumber Mean2, BigNumber Variance1, BigNumber Variance2,BigNumber Proportion1, BigNumber Proportion2, double Significance, string Tail, string type)
+        public static string CI2(BigNumber Mean1, BigNumber Mean2, BigNumber Variance1, BigNumber Variance2,BigNumber Proportion1, BigNumber Proportion2, BigNumber SampleNum1,BigNumber SampleNum2,double Significance, string Tail, string type)
         {
+            BigNumber one = new BigNumber("1");
+            BigNumber S_p = ((SampleNum1 - one) * Variance1 + (SampleNum2 - one) * Variance2) / (SampleNum1 + SampleNum2 - one - one);
             Tail = Tail.ToLower();
             if (type == "Mean.Esti")
             {
                 //均值估计
-                return "置信区间";
+                if (Tail == "two")
+                {
+                    Significance = Significance / 2;
+                    BigNumber lower = Mean1 - Mean2 - new BigNumber(NORMSINV(Significance).ToString()) * (S_p * (one / SampleNum1 + one / SampleNum2)).Power(new BigNumber("0.5"), 30);
+                    BigNumber upper = Mean1 - Mean2 + new BigNumber(NORMSINV(Significance).ToString()) * (S_p * (one / SampleNum1 + one / SampleNum2)).Power(new BigNumber("0.5"), 30);
+                    return lower.ToString() + "," + upper.ToString();
+                }
+                else
+                {
+                    if (Tail == "greater")
+                    {
+                        Significance = Significance / 1;
+                        BigNumber lower = Mean1 - Mean2 - new BigNumber(NORMSINV(Significance).ToString()) * (S_p * (one / SampleNum1 + one / SampleNum2)).Power(new BigNumber("0.5"), 30);
+                        return lower.ToString() + ",";
+                    }
+                    else
+                    {
+                        if (Tail == "less")
+                        {
+                            Significance = Significance / 1;
+                            BigNumber upper = Mean1 - Mean2 + new BigNumber(NORMSINV(Significance).ToString()) * (S_p * (one / SampleNum1 + one / SampleNum2)).Power(new BigNumber("0.5"), 30);
+                            return "," + upper.ToString();
+                        }
+                        else
+                        {
+                            return "NA";
+                        }
+                    }
+                }
             }
             else if (type == "Proportion.Esti")
             {
                 //比例估计
-                return "置信区间";
+                if (Tail == "two")
+                {
+                    Significance = Significance / 2;
+                    BigNumber lower = Proportion1 - Proportion2 - new BigNumber(NORMSINV(Significance).ToString()) * (Proportion1 * ((new BigNumber("1") - Proportion1) / SampleNum1 + Proportion2 * (new BigNumber("1") - Proportion2) / SampleNum2)).Power(new BigNumber("0.5"));
+                    BigNumber upper = Proportion1 - Proportion2 + new BigNumber(NORMSINV(Significance).ToString()) * (Proportion1 * ((new BigNumber("1") - Proportion1) / SampleNum1 + Proportion2 * (new BigNumber("1") - Proportion2) / SampleNum2)).Power(new BigNumber("0.5"));
+                    return lower.ToString() + "," + upper.ToString();
+                }
+                else
+                {
+                    if (Tail == "greater")
+                    {
+                        Significance = Significance / 1;
+                        BigNumber lower = Proportion1 - Proportion2 - new BigNumber(NORMSINV(Significance).ToString()) * (Proportion1 * ((new BigNumber("1") - Proportion1) / SampleNum1 + Proportion2 * (new BigNumber("1") - Proportion2) / SampleNum2)).Power(new BigNumber("0.5"));
+                        return lower.ToString() + ",";
+                    }
+                    else
+                    {
+                        if (Tail == "less")
+                        {
+                            Significance = Significance / 1;
+                            BigNumber upper = Proportion1 - Proportion2 + new BigNumber(NORMSINV(Significance).ToString()) * (Proportion1 * ((new BigNumber("1") - Proportion1) / SampleNum1 + Proportion2 * (new BigNumber("1") - Proportion2) / SampleNum2)).Power(new BigNumber("0.5"));
+                            return "," + upper.ToString();
+                        }
+                        else
+                        {
+                            return "NA";
+                        }
+                    }
+                }
+             
             }
             else if (type == "Variance.Esti")
             {
                 //方差估计
-                return "置信区间";
+                 if (Tail == "two")
+                {
+                    Significance =Significance /2;
+                    BigNumber lower = (Variance1 / Variance2) / new BigNumber(FCDF(Significance, Convert.ToInt32(SampleNum1.ToString()) - 1, Convert.ToInt32(SampleNum2.ToString()) - 1).ToString());
+                    BigNumber upper = (Variance1 / Variance2) * new BigNumber(FCDF(Significance, Convert.ToInt32(SampleNum2.ToString()) - 1, Convert.ToInt32(SampleNum1.ToString()) - 1).ToString());
+                    return lower.ToString() + "," + upper.ToString();
+                }
+                else
+                {
+                    if (Tail == "greater")
+                    {
+                        Significance = Significance / 1;
+                        BigNumber lower = (Variance1 / Variance2) / new BigNumber(FCDF(Significance, Convert.ToInt32(SampleNum1.ToString()) - 1, Convert.ToInt32(SampleNum2.ToString()) - 1).ToString());
+                        return lower.ToString() + ",";
+                    }
+                    else
+                    {
+                        if (Tail == "less")
+                        {
+                            Significance = Significance / 1;
+                            BigNumber upper = (Variance1 / Variance2) * new BigNumber(FCDF(Significance, Convert.ToInt32(SampleNum1.ToString()) - 1, Convert.ToInt32(SampleNum2.ToString()) - 1).ToString());
+                            return "," + upper.ToString();
+                        }
+                        else
+                        {
+                            return "NA";
+                        }
+                    }
+                }
             }
             else
             {
@@ -582,18 +729,122 @@ namespace Stat
         //type = "Proportion.Test"为比例检验
         //返回为字符串，如： 3.5,7.6  以逗号分隔
         //如果没有输入正确的type则返回NA
-        public static string HT1(BigNumber H0, BigNumber Mean, BigNumber Variance, BigNumber Proportion, double Significance, string Tail, string type)
+        public static string HT1(BigNumber H0, BigNumber Mean, BigNumber Variance, BigNumber Proportion,BigNumber SampleNum, double Significance, string Tail, string type)
         {
             Tail = Tail.ToLower();
             if (type == "Mean.Test")
             {
                 //均值检验
-                return "假设检验";
+                BigNumber tvalue = (H0 - Mean) / ((Variance / SampleNum).Power(new BigNumber("0.5"), 10));
+                Double t_value = Convert.ToDouble(tvalue.ToString());
+                BigNumber pvalue = new BigNumber((MathV.round(GaossFx(t_value).ToString(), 7, 0)).ToString());//取前十位
+                string result = CI1(Mean, Variance, Proportion, SampleNum, Significance, Tail, type);
+                char[] separator = { ',' };
+                string[] intervals = result.Split(separator);
+                if (Tail == "two")
+                {
+                    BigNumber lower = new BigNumber(intervals[0]);
+                    BigNumber upper = new BigNumber(intervals[1]);
+                    if (CompareNumber.Compare(lower, H0) == -1 && CompareNumber.Compare(upper, H0) == 1)
+                    {
+                        return tvalue.ToString() + "," + pvalue.ToString() + "," + "不拒绝原假设";
+                    }
+                    else
+                    {
+                        return tvalue.ToString() + "," + pvalue.ToString() + "," + "拒绝原假设";
+                    }
+                }
+                else
+                {
+                    if (Tail == "greater")
+                    {
+                        BigNumber lower = new BigNumber(intervals[0]);
+                        if (CompareNumber.Compare(lower, H0) == -1)
+                        {
+                            return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "不拒绝原假设";
+                        }
+                        else
+                        {
+                            return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "拒绝原假设";
+                        }
+                    }
+                    else
+                    {
+                        if (Tail == "less")
+                        {
+                            BigNumber upper = new BigNumber(intervals[1]);
+                            if (CompareNumber.Compare(upper, H0) == 1)
+                            {
+                                return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "不拒绝原假设";
+                            }
+                            else
+                            {
+                                return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "拒绝原假设";
+                            }
+                        }
+                        else
+                        {
+                            return "null";
+                        }
+                    }
+                }
             }
             else if (type == "Proportion.Test")
             {
                 //比例检验
-                return "假设检验";
+                string result = CI1(Mean, Variance, Proportion, SampleNum, Significance, Tail, type);
+                char[] separator = { ',' };
+                string[] intervals = result.Split(separator);
+                BigNumber tvalue = (Proportion - H0) / ((H0 * (new BigNumber("1") - H0) / SampleNum).Power(new BigNumber("0.5"), 10));
+                Double t_value = Convert.ToDouble(tvalue.ToString());
+                BigNumber pvalue = new BigNumber((MathV.round(GaossFx(t_value).ToString(), 7, 0)).ToString());
+                if (Tail == "two")
+                {
+                    BigNumber lower = new BigNumber(intervals[0]);
+                    BigNumber upper = new BigNumber(intervals[1]);
+                    if (CompareNumber.Compare(lower, H0) == -1 && CompareNumber.Compare(upper, H0) == 1)
+                    {
+                        return tvalue.ToString() + "," + pvalue.ToString() + "," + "不拒绝原假设";
+                    }
+                    else
+                    {
+                        return tvalue.ToString() + "," + pvalue.ToString() + "," + "拒绝原假设";
+                    }
+                }
+                else
+                {
+                    if (Tail == "greater")
+                    {
+                        BigNumber lower = new BigNumber(intervals[0]);
+                        if (CompareNumber.Compare(lower, H0) == -1)
+                        {
+                            return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "不拒绝原假设";
+                        }
+                        else
+                        {
+                            return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "拒绝原假设";
+                        }
+                    }
+                    else
+                    {
+                        if (Tail == "less")
+                        {
+                            BigNumber upper = new BigNumber(intervals[1]);
+                            if (CompareNumber.Compare(upper, H0) == 1)
+                            {
+                                return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "不拒绝原假设";
+                            }
+                            else
+                            {
+                                return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "拒绝原假设";
+                            }
+                        }
+                        else
+                        {
+                            return "null";
+                        }
+                    }
+                }
             }
             else
             {
@@ -609,25 +860,187 @@ namespace Stat
         //type = "Proportion.Test"为比例检验
         //返回为字符串，如： 3.5,7.6  以逗号分隔
         //如果没有输入正确的type则返回NA
-        public static string HT1(BigNumber H0, BigNumber Mean1, BigNumber Mean2, BigNumber Variance1, BigNumber Variance2, BigNumber Proportion1, BigNumber Proportion2, double Significance, string Tail, string type)
+        public static string HT2(BigNumber H0, BigNumber Mean1, BigNumber Mean2, BigNumber Variance1, BigNumber Variance2, BigNumber Proportion1, BigNumber Proportion2, BigNumber SampleNum1,BigNumber SampleNum2,double Significance, string Tail, string type)
         {
             Tail = Tail.ToLower();
             if (type == "Mean.Test")
             {
                 //均值检验
-                return "假设检验";
+                BigNumber one = new BigNumber("1");
+                BigNumber S_p = ((SampleNum1 - one) * Variance1 + (SampleNum2 - one) * Variance2) / (SampleNum1 + SampleNum2 - one - one);
+                BigNumber tvalue = (H0 - (Mean1 - Mean2)) / S_p.Power(new BigNumber("0.5"), 30);
+                Double t_value = Convert.ToDouble(tvalue.ToString());
+                BigNumber pvalue = new BigNumber((MathV.round(GaossFx (t_value).ToString(), 7, 0)).ToString());
+                string result = CI2(Mean1, Mean2, Variance1, Variance2, Proportion1, Proportion2, SampleNum1, SampleNum2, Significance, Tail, type);
+                char[] separator = { ',' };
+                string[] intervals = result.Split(separator);
+                if (Tail == "two")
+                {
+                    BigNumber lower = new BigNumber(intervals[0]);
+                    BigNumber upper = new BigNumber(intervals[1]);
+                    if (CompareNumber.Compare(lower, H0) == -1 && CompareNumber.Compare(upper, H0) == 1)
+                    {
+                        return tvalue.ToString() + "," + pvalue.ToString() + "," + "不拒绝原假设";
+                    }
+                    else
+                    {
+                        return tvalue.ToString() + "," + pvalue.ToString() + "," + "拒绝原假设";
+                    }
+                }
+                else
+                {
+                    if (Tail == "greater")
+                    {
+                        BigNumber lower = new BigNumber(intervals[0]);
+                        if (CompareNumber.Compare(lower, H0) == -1)
+                        {
+                            return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "不拒绝原假设";
+                        }
+                        else
+                        {
+                            return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "拒绝原假设";
+                        }
+                    }
+                    else
+                    {
+                        if (Tail == "less")
+                        {
+                            BigNumber upper = new BigNumber(intervals[1]);
+                            if (CompareNumber.Compare(upper, H0) == -1)
+                            {
+                                return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "不拒绝原假设";
+                            }
+                            else
+                            {
+                                return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "拒绝原假设";
+                            }
+                        }
+                        else
+                        {
+                            return "null";
+                        }
+                    }
+                }
             }
             else if (type == "Proportion.Test")
             {
                 //比例检验
-                return "假设检验";
+                BigNumber pbar = (SampleNum1 * Proportion1 + SampleNum2 * Proportion2) / (SampleNum1 + SampleNum2);
+                BigNumber tvalue = (Proportion1 - Proportion2 - H0) / (pbar * (new BigNumber("1") - pbar) * (new BigNumber("1") / SampleNum1 + new BigNumber("1") / SampleNum2)).Power(new BigNumber("0.5"), 10);
+                Double t_value = Convert.ToDouble(tvalue.ToString());
+                BigNumber pvalue = new BigNumber((MathV.round(GaossFx (t_value).ToString(), 7, 0)).ToString());
+                string result = CI2(Mean1, Mean2, Variance1, Variance2, Proportion1, Proportion2, SampleNum1, SampleNum2, Significance, Tail, type);
+                char[] separator = { ',' };
+                string[] intervals = result.Split(separator);
+                if (Tail == "two")
+                {
+                    BigNumber lower = new BigNumber(intervals[0]);
+                    BigNumber upper = new BigNumber(intervals[1]);
+                    if (CompareNumber.Compare(lower, H0) == -1 && CompareNumber.Compare(upper, H0) == 1)
+                    {
+                        return tvalue.ToString() + "," + pvalue.ToString() + "," + "不拒绝原假设";
+                    }
+                    else
+                    {
+                        return tvalue.ToString() + "," + pvalue.ToString() + "," + "拒绝原假设";
+                    }
+
+                }
+                else
+                {
+                    if (Tail == "greater")
+                    {
+                        BigNumber lower = new BigNumber(intervals[0]);
+                        if (CompareNumber.Compare(lower, H0) == -1)
+                        {
+                            return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "不拒绝原假设";
+                        }
+                        else
+                        {
+                            return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "拒绝原假设";
+                        }
+
+                    }
+                    else
+                    {
+                        if (Tail == "less")
+                        {
+                            BigNumber upper = new BigNumber(intervals[1]);
+                            if (CompareNumber.Compare(upper, H0) == -1)
+                            {
+                                return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "不拒绝原假设";
+                            }
+                            else
+                            {
+                                return tvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "拒绝原假设";
+                            }
+
+                        }
+                        else
+                        {
+                            return "null";
+                        }
+                    }
+                }
             }
             else if (type == "Variance.Test")
             {
                 //方差比检验
-                return "假设检验";
+                BigNumber Fvalue = Variance1 / Variance2;
+                Double F_value = Convert.ToDouble(Fvalue.ToString());
+                BigNumber pvalue = new BigNumber((MathV.round(FdistUa(F_value, Convert.ToInt32(SampleNum1.ToString()) - 1, Convert.ToInt32(SampleNum2.ToString()) - 1).ToString(), 7, 0)).ToString());
+                string result = CI2(Mean1, Mean2, Variance1, Variance2, Proportion1, Proportion2, SampleNum1, SampleNum2, Significance, Tail, type);
+                char[] separator = { ',' };
+                string[] intervals = result.Split(separator);
+                if (Tail == "two")
+                {
+                    BigNumber lower = new BigNumber(intervals[0]);
+                    BigNumber upper = new BigNumber(intervals[1]);
+                    if (CompareNumber.Compare(lower, H0) == -1 && CompareNumber.Compare(upper, H0) == 1)
+                    {
+                        return Fvalue.ToString() + "," + pvalue.ToString() + "," + "不拒绝原假设";
+                    }
+                    else
+                    {
+                        return Fvalue.ToString() + "," + pvalue.ToString() + "," + "拒绝原假设";
+                    }
+                }
+                else
+                {
+                    if (Tail == "greater")
+                    {
+                        BigNumber lower = new BigNumber(intervals[0]);
+                        if (CompareNumber.Compare(lower, H0) == -1)
+                        {
+                            return Fvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "不拒绝原假设";
+                        }
+                        else
+                        {
+                            return Fvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "拒绝原假设";
+                        }
+                    }
+                    else
+                    {
+                        if (Tail == "less")
+                        {
+                            BigNumber upper = new BigNumber(intervals[0]);
+                            if (CompareNumber.Compare(upper, H0) == -1)
+                            {
+                                return Fvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "不拒绝原假设";
+                            }
+                            else
+                            {
+                                return Fvalue.ToString() + "," + (new BigNumber("2") * pvalue - new BigNumber("1")).ToString() + "," + "拒绝原假设";
+                            }
+                        }
+                        else
+                        {
+                            return "null";
+                        }
+                    }
+                }
             }
-            else 
+            else
             {
                 return "NA";
             }
@@ -656,6 +1069,270 @@ namespace Stat
             }
             return MinValue;
         }
-    
+    public static string OneWayANOVA(BigNumber[,] Numberseies)
+    {   // 单因素方差分析
+        int weidu = Numberseies.Rank;
+        int x = Numberseies.GetLength(0);
+        int y = Numberseies.GetLength(1);
+        int z = Numberseies.Length;
+        BigNumber SST = new BigNumber("0");
+        BigNumber SSA = new BigNumber("0");
+        BigNumber SSW = new BigNumber("0");
+        BigNumber sum1 = new BigNumber("0");
+        BigNumber[] sum2 = new BigNumber[y];
+        for (int j = 0; j < y; j++)
+        {
+            for (int i = 0; i < x; i++)
+            {
+                sum1 += Numberseies[i, j];
+                sum2[j] += Numberseies[i, j];
+            }
+        }
+        BigNumber Txbar = sum1 / new BigNumber(z.ToString());
+        BigNumber[] Axbar = new BigNumber[y];
+        for (int j = 0; j < y; j++)
+        {
+            Axbar[j] = sum2[j] / new BigNumber(y.ToString());
+        }
+
+        for (int j = 0; j < y; j++)
+        {
+            SSA += new BigNumber(y.ToString()) * (Axbar[j] - Txbar).Power(new BigNumber("0.5"), 30);
+        }
+
+        for (int j = 0; j < y; j++)
+        {
+            for (int i = 0; i < x; i++)
+            {
+                SST += (Numberseies[i, j] - Txbar).Power(new BigNumber("0.5"), 30);
+                SSW += (Numberseies[i, j] - Axbar[j]).Power(new BigNumber("0.5"), 30);
+            }
+        }
+        BigNumber MSA = SSA / (new BigNumber(y.ToString()) - new BigNumber("1"));
+        BigNumber MSW = SSW / (new BigNumber(z.ToString()) - new BigNumber(y.ToString()));
+        BigNumber MST = SST / (new BigNumber(z.ToString()) - new BigNumber("1"));
+        BigNumber Fvalue = MSA / MSW;
+        return Fvalue.ToString();
+
+    }
+    public static BigNumber Covariance(BigNumber[] NumberSeries1, BigNumber[] NumberSeries2)
+    {
+        //协方差计算
+        BigNumber sum = new BigNumber("0");
+        int len1 = NumberSeries1.Length;
+        int len2 = NumberSeries2.Length;
+        BigNumber mean_series1 = Mean(NumberSeries1);
+        BigNumber mean_series2 = Mean(NumberSeries2);
+        BigNumber E_xy = new BigNumber("0");
+
+        for (int i = 0; i < len1; i++)
+        {
+            E_xy += NumberSeries1[i] * NumberSeries2[i];
+        }
+        BigNumber cov = E_xy / (new BigNumber(len1.ToString())) - mean_series1 * mean_series2;
+        return cov;
+    }
+
+    public static BigNumber Corr(BigNumber[] NumberSeries1, BigNumber[] NumberSeries2)
+    {
+        //相关系数计算
+        BigNumber cov = Covariance(NumberSeries1, NumberSeries2);
+        BigNumber len1 = new BigNumber(NumberSeries1.Length.ToString());
+        BigNumber var1 = Variance(NumberSeries1) * (len1 - new BigNumber("1")) / len1;
+        BigNumber var2 = Variance(NumberSeries2) * (len1 - new BigNumber("1")) / len1;
+        BigNumber Rho = cov / ((var1 * var2).Power(new BigNumber("0.5")));
+        if (MathV.round(Rho.ToString(), 10, 0) == "-0.0000000000")
+        {
+            return new BigNumber("0");
+        }
+        else
+        {
+            return Rho;
+        }
+    }
+    public static BigNumber[,] MutiRegB(BigNumber[,] x, BigNumber[,] y)
+    { //返回多元回归参数估计值**************************************注意：x第一列为1*******************
+        int len11 = x.GetLength(0);//行数
+        int len12 = x.GetLength(1);//列数
+        BigNumber[,] b1 = MathV.MatTrans(x);
+        BigNumber[,] b2 = MathV.MatTimes(b1, x);
+        BigNumber[,] b3 = Stat.MatInv(b2, len12);
+        BigNumber[,] b4 = MathV.MatTimes(b3, b1);
+        BigNumber[,] bhat = MathV.MatTimes(b4, y);
+        return bhat;
+    }
+    public static BigNumber[] MutiRegP(BigNumber[,] x, BigNumber[,] y)
+    {    //返回多元回归P值
+        int len11 = x.GetLength(0);//行数
+        int len12 = x.GetLength(1);//列数
+        int len21 = y.GetLength(1);//y列数
+        if (len21 != 1)
+        {
+            return null;
+        }
+        BigNumber[,] b1 = MathV.MatTrans(x);
+        BigNumber[,] b2 = MathV.MatTimes(b1, x);
+        BigNumber[,] b3 = Stat.MatInv(b2, len12);
+        BigNumber[,] b4 = MathV.MatTimes(b3, b1);
+        BigNumber[,] bhat = MathV.MatTimes(b4, y);
+        BigNumber[,] b5 = MathV.MatTimes(x, bhat);
+        BigNumber[,] epsilon = MathV.MatMinu(y, b5);
+        BigNumber[] variance = new BigNumber[len12];
+        for (int i = 1; i < len11; i++)
+        {
+            variance[i] = epsilon[i, 1];
+        }
+        BigNumber sigma2 = Variance(variance) * new BigNumber(((len11 - 1) / len11).ToString());
+        BigNumber[,] b6 = new BigNumber[len12, len12]; //sigma^2*(C^T C)^{-1} 参数方差
+        for (int i = 0; i < len12; i++)
+        {
+            for (int j = 0; j < len12; j++)
+            {
+                b6[i, j] = sigma2 * b3[i, j];
+            }
+        }
+        BigNumber[] std_b = new BigNumber[len12];
+        for (int i = 0; i < len12; i++)
+        {
+            std_b[i] = b6[i, i].Power(new BigNumber("0.5"));
+        }
+        BigNumber[] tvalue_b = new BigNumber[len12];
+        for (int i = 0; i < len12; i++)
+        {
+            tvalue_b[i] = bhat[i, 1] / std_b[i];
+        }
+        BigNumber[] pvalue_b = new BigNumber[len12];
+        for (int i = 0; i < len12; i++)
+        {
+            pvalue_b[i] = new BigNumber(Stat.NORMSDIST(Convert.ToDouble(tvalue_b[i].ToString())).ToString());
+        }
+        return pvalue_b;
+    }
+    public static string MutiRegR(BigNumber[,] x, BigNumber[,] y)
+    {    //返回多元回归拟合优度R^2 and adj_R^2
+        int len11 = x.GetLength(0);//x行数
+        int len12 = x.GetLength(1);//x列数
+        int len21 = y.GetLength(1);//y列数
+        int len22 = y.GetLength(0);//y列数
+        if (len21 != 1)
+        {
+            return null;
+        }
+        BigNumber ysum = new BigNumber("0");
+        for (int i = 0; i < len11; i++)
+        {
+            ysum += y[i, 1];
+        }
+        BigNumber ybar = ysum / (new BigNumber(len11.ToString()));
+        BigNumber TSS = new BigNumber("0");
+        for (int i = 0; i < len11; i++)
+        {
+            TSS += (y[i, 1] - ybar).Power(new BigNumber("2"));
+        }
+        BigNumber[,] b1 = MathV.MatTrans(x);
+        BigNumber[,] b2 = MathV.MatTimes(b1, x);
+        BigNumber[,] b3 = Stat.MatInv(b2, len12);
+        BigNumber[,] b4 = MathV.MatTimes(b3, b1);
+        BigNumber[,] bhat = MathV.MatTimes(b4, y);
+        BigNumber[,] b5 = MathV.MatTimes(x, bhat);
+        BigNumber[,] epsilon = MathV.MatMinu(y, b5);
+        BigNumber ESS = new BigNumber("0");
+        for (int i = 0; i < len11; i++)
+        {
+            ESS += (epsilon[i, 1]).Power(new BigNumber("2"));
+        }
+        BigNumber MSS = TSS - ESS;
+        BigNumber Rsquare = MSS / TSS;
+        BigNumber Adj_Rsquare = new BigNumber("1") - (new BigNumber("1") - Rsquare) * (new BigNumber(len11.ToString()) - new BigNumber("1") / (new BigNumber(len11.ToString()) - new BigNumber(len12.ToString()) - new BigNumber("1")));
+        BigNumber Fvalue = (MSS / new BigNumber(len12.ToString())) / (ESS / (new BigNumber(len11.ToString()) - new BigNumber(len12.ToString()) - new BigNumber("1")));
+        return Rsquare.ToString() + "," + Adj_Rsquare.ToString() + "," + Fvalue.ToString();
+
+    }
+    public static BigNumber[,] MatCorr(BigNumber[,] matrix)
+    {
+        int len1 = matrix.GetLength(0);
+        int len2 = matrix.GetLength(1);
+        BigNumber[] a1 = new BigNumber[len1 * len2];
+        for (int j = 0; j < len2; j++)
+        {
+            for (int i = 0; i < len1; i++)
+            {
+                a1[j * len1 + i] = matrix[i, j];
+            }
+        }
+        BigNumber[] a2 = new BigNumber[len1];
+        BigNumber[] a3 = new BigNumber[len1];
+        BigNumber[,] corr = new BigNumber[len2, len2];
+        for (int c = 1; c < len2; c++)
+        {
+            for (int j = 0; j < len2 - 1; j++)
+            {
+                for (int i = 0; i < len1; i++)
+                {
+                    a2[i] = a1[j * len1 + i];
+                }
+                for (int i = 0; i < len1; i++)
+                {
+                    a3[i] = a1[(j + 1) * len1 + i];
+                }
+                try
+                {
+                    corr[j, j + c] = Corr(a2, a3);
+                    corr[j + c, j] = Corr(a2, a3);
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+        }
+        for (int i = 0; i < len2; i++)
+        {
+            corr[i, i] = new BigNumber("1");
+        }
+        return corr;
+    }
+    public static BigNumber Double2Big(Double x_bignumber)
+    {
+        string NumberStr = x_bignumber.ToString().Trim();
+        int E_position = -1;
+        int IsNegative = 0;
+        int ScientificNotation = 0;
+        string ScientificNumber;
+        BigNumber result = new BigNumber("0");
+        string Scientificupper;
+        //0为正，1为负
+        for (int i = 0; i < NumberStr.Length; i++)
+        {
+            if (NumberStr[i] == 'E' || NumberStr[i] == 'e')
+            {
+                E_position = i;
+            }
+        }
+        if (E_position != -1)
+        {
+            ScientificNotation = NumberStr.Length - E_position - 1 - 1;
+            ScientificNumber = NumberStr.Substring(E_position + 1 + 1, ScientificNotation);
+            Scientificupper = NumberStr.Substring(0, E_position - 1);
+            if (NumberStr[E_position + 1] == '-')
+            {
+                IsNegative = 1;
+                result = new BigNumber("-1") * new BigNumber(Scientificupper) * (new BigNumber("10").Power(new BigNumber(ScientificNumber)));
+                return result;
+            }
+            else
+            {
+                result = new BigNumber("1") * new BigNumber(Scientificupper) * (new BigNumber("10").Power(new BigNumber(ScientificNumber)));
+                return result;
+            }
+
+        }
+        else
+        {
+            result = new BigNumber(NumberStr);
+            return result;
+        }
+    }
+
 }
 }
