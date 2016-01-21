@@ -8,7 +8,7 @@ namespace MathV
 {
     public class MathV
     {
-        static string round(string number, int digits, int type)
+        public static string round(string number, int digits, int type)
         {
             //type为0时四舍五入，1为ground，2为ceiling
             int NumOriginLen = number.Length;
@@ -279,5 +279,351 @@ namespace MathV
             }
             return MinValue;
         }
+        //行列式值计算
+        public static BigNumber MatValue(BigNumber[,] MatrixList, int Level)  //求得|A| 如果为0 说明不可逆
+        {
+
+            BigNumber[,] dMatrix = new BigNumber[Level, Level];   //定义二维数组，行列数相同
+
+            for (int i = 0; i < Level; i++)
+
+                for (int j = 0; j < Level; j++)
+
+                    dMatrix[i, j] = MatrixList[i, j];     //将参数的值，付给定义的数组
+
+
+            BigNumber c, x;
+            BigNumber k = new BigNumber("1");
+
+            for (int i = 0, j = 0; i < Level && j < Level; i++, j++)
+            {
+
+                if (CompareNumber.Compare(dMatrix[i, j], new BigNumber("0")) == 0)   //判断对角线上的数据是否为0
+                {
+
+                    int m = i;
+
+                    for (; CompareNumber.Compare(dMatrix[m, j], new BigNumber("0")) == 0; m++) ;  //如果对角线上数据为0，从该数据开始依次往后判断是否为0
+
+                    if (m == Level)                      //当该行从对角线开始数据都为0 的时候 返回0
+
+                        return new BigNumber("0");
+
+                    else
+                    {
+
+                        // Row change between i-row and m-row
+
+                        for (int n = j; n < Level; n++)
+                        {
+
+                            c = dMatrix[i, n];
+
+                            dMatrix[i, n] = dMatrix[m, n];
+
+                            dMatrix[m, n] = c;
+
+                        }
+
+                        // Change value pre-value
+
+                        k = k * new BigNumber("-1");
+
+                    }
+
+                }
+
+                // Set 0 to the current column in the rows after current row
+
+                for (int s = Level - 1; s > i; s--)
+                {
+
+                    x = dMatrix[s, j];
+
+                    for (int t = j; t < Level; t++)
+
+                        dMatrix[s, t] -= dMatrix[i, t] * (x / dMatrix[i, j]);
+
+                }
+
+            }
+
+            BigNumber sn = new BigNumber("1");
+
+            for (int i = 0; i < Level; i++)
+            {
+
+                if (dMatrix[i, i] != new BigNumber("0"))
+
+                    sn *= dMatrix[i, i];
+
+                else
+
+                    return new BigNumber("0");
+
+            }
+
+            return k * sn;
+
+        }
+        public static BigNumber[,] MatInv(BigNumber[,] dMatrix, int Level)
+        {
+
+            BigNumber dMatrixValue = MatValue(dMatrix, Level);
+
+            if (CompareNumber.Compare(dMatrixValue, new BigNumber("0")) == 0) return null;       //A为该矩阵 若|A| =0 则该矩阵不可逆 返回空
+
+
+            BigNumber[,] dReverseMatrix = new BigNumber[Level, 2 * Level];
+
+            BigNumber x, c;
+
+            // Init Reverse matrix
+
+            for (int i = 0; i < Level; i++)     //创建一个矩阵（A|I） 以对其进行初等变换 求得其矩阵的逆
+            {
+
+                for (int j = 0; j < 2 * Level; j++)
+                {
+
+                    if (j < Level)
+
+                        dReverseMatrix[i, j] = dMatrix[i, j];   //该 （A|I）矩阵前 Level列为矩阵A  后面为数据全部为0
+
+                    else
+
+                        dReverseMatrix[i, j] = new BigNumber("0");
+
+                }
+
+                dReverseMatrix[i, Level + i] = new BigNumber("1");
+
+
+            }
+
+
+
+            for (int i = 0, j = 0; i < Level && j < Level; i++, j++)
+            {
+
+                if (CompareNumber.Compare(dReverseMatrix[i, j], new BigNumber("0")) == 0)   //判断一行对角线 是否为0
+                {
+
+                    int m = i;
+
+                    for (; CompareNumber.Compare(dMatrix[m, j], new BigNumber("0")) == 0; m++) ;
+
+                    if (m == Level)
+
+                        return null;  //某行对角线为0的时候 判断该行该数据所在的列在该数据后 是否为0 都为0 的话不可逆 返回空值
+
+                    else
+                    {
+
+                        // Add i-row with m-row
+
+                        for (int n = j; n < 2 * Level; n++)   //如果对角线为0 则该i行加上m行 m行为（初等变换要求对角线为1，0-->1先加上某行，下面在变1）
+
+                            dReverseMatrix[i, n] += dReverseMatrix[m, n];
+
+                    }
+
+                }
+
+                x = dReverseMatrix[i, j];
+
+                if (x != new BigNumber("1"))                  //如果对角线元素不为1  执行以下
+                {
+
+                    for (int n = j; n < 2 * Level; n++)
+
+                        if (dReverseMatrix[i, n] != new BigNumber("0"))
+
+                            dReverseMatrix[i, n] /= x;   //相除  使i行第一个数字为1
+
+                }
+
+                // Set 0 to the current column in the rows after current row
+
+                for (int s = Level - 1; s > i; s--)         //该对角线数据为1 时，这一列其他数据 要转换为0
+                {
+
+                    x = dReverseMatrix[s, j];
+
+                    for (int t = j; t < 2 * Level; t++)
+
+                        dReverseMatrix[s, t] -= (dReverseMatrix[i, t] * x);
+
+                }
+
+            }
+
+            // Format the first matrix into unit-matrix
+
+            for (int i = Level - 2; i >= 0; i--)
+
+            //处理第一行二列的数据 思路如上 就是把除了对角线外的元素转换为0 
+            {
+
+                for (int j = i + 1; j < Level; j++)
+
+                    if (dReverseMatrix[i, j] != new BigNumber("0"))
+                    {
+
+                        c = dReverseMatrix[i, j];
+
+                        for (int n = j; n < 2 * Level; n++)
+
+                            dReverseMatrix[i, n] -= (c * dReverseMatrix[j, n]);
+
+                    }
+
+            }
+
+            BigNumber[,] dReturn = new BigNumber[Level, Level];
+
+            for (int i = 0; i < Level; i++)
+
+                for (int j = 0; j < Level; j++)
+
+                    dReturn[i, j] = dReverseMatrix[i, j + Level];
+
+            return dReturn;
+        }
+        public static BigNumber Double2Big(Double x_bignumber)
+        {
+            string NumberStr = x_bignumber.ToString().Trim();
+            int E_position = -1;
+            int IsNegative = 0;
+            int ScientificNotation = 0;
+            string ScientificNumber;
+            BigNumber result = new BigNumber("0");
+            string Scientificupper;
+            //0为正，1为负
+            for (int i = 0; i < NumberStr.Length; i++)
+            {
+                if (NumberStr[i] == 'E' || NumberStr[i] == 'e')
+                {
+                    E_position = i;
+                }
+            }
+            if (E_position != -1)
+            {
+                ScientificNotation = NumberStr.Length - E_position - 1 - 1;
+                ScientificNumber = NumberStr.Substring(E_position + 1 + 1, ScientificNotation);
+                Scientificupper = NumberStr.Substring(0, E_position - 1);
+                if (NumberStr[E_position + 1] == '-')
+                {
+                    IsNegative = 1;
+                    result = new BigNumber("-1") * new BigNumber(Scientificupper) * (new BigNumber("10").Power(new BigNumber(ScientificNumber)));
+                    return result;
+                }
+                else
+                {
+                    result = new BigNumber("1") * new BigNumber(Scientificupper) * (new BigNumber("10").Power(new BigNumber(ScientificNumber)));
+                    return result;
+                }
+
+            }
+            else
+            {
+                result = new BigNumber(NumberStr);
+                return result;
+            }
+        }
+        public static BigNumber[,] MatPlus(BigNumber[,] mat1, BigNumber[,] mat2)
+        {//矩阵加法
+            int len11 = mat1.GetLength(0);
+            int len12 = mat1.GetLength(1);
+            int len21 = mat2.GetLength(0);
+            int len22 = mat2.GetLength(1);
+
+            if (len11 == len21 && len12 == len22)
+            {
+                BigNumber[,] a = new BigNumber[len11, len12];
+                for (int i = 0; i < len11; i++)
+                {
+                    for (int j = 0; j < len12; j++)
+                    {
+                        a[i, j] = mat1[i, j] + mat2[i, j];
+                    }
+                }
+                return a;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+
+        public static BigNumber[,] MatMinu(BigNumber[,] mat1, BigNumber[,] mat2)
+        {//矩阵减法
+            int len11 = mat1.GetLength(0);
+            int len12 = mat1.GetLength(1);
+            int len21 = mat2.GetLength(0);
+            int len22 = mat2.GetLength(1);
+
+            if (len11 == len21 && len12 == len22)
+            {
+                BigNumber[,] a = new BigNumber[len11, len12];
+                for (int i = 0; i < len11; i++)
+                {
+                    for (int j = 0; j < len12; j++)
+                    {
+                        a[i, j] = mat1[i, j] - mat2[i, j];
+                    }
+                }
+                return a;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public static BigNumber[,] MatTimes(BigNumber[,] mat1, BigNumber[,] mat2)
+        {    //矩阵乘法
+            int len11 = mat1.GetLength(0);
+            int len12 = mat1.GetLength(1);
+            int len21 = mat2.GetLength(0);
+            int len22 = mat2.GetLength(1);
+            if (len12 == len21)
+            {
+                BigNumber[,] a = new BigNumber[len11, len22];
+                for (int i = 0; i < len11; i++)
+                {
+                    for (int j = 0; j < len22; j++)
+                    {
+                        for (int u = 0; u < len12; u++)
+                        {
+                            a[i, j] += mat1[i, u] * mat2[u, j];
+                        }
+                    }
+                }
+                return a;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public static BigNumber[,] MatTrans(BigNumber[,] mat)
+        {
+            //矩阵转置
+            int len1 = mat.GetLength(0);
+            int len2 = mat.GetLength(1);
+            BigNumber[,] a = new BigNumber[len2, len1];
+            for (int i = 0; i < len1; i++)
+            {
+                for (int j = 0; j < len2; j++)
+                {
+                    a[j, i] = mat[i, j];
+                }
+            }
+            return a;
+        }
+
     }
 }

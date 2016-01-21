@@ -1156,7 +1156,7 @@ namespace Stat
         int len12 = x.GetLength(1);//列数
         BigNumber[,] b1 = MathV.MatTrans(x);
         BigNumber[,] b2 = MathV.MatTimes(b1, x);
-        BigNumber[,] b3 = Stat.MatInv(b2, len12);
+        BigNumber[,] b3 = MathV.MatInv(b2, len12);
         BigNumber[,] b4 = MathV.MatTimes(b3, b1);
         BigNumber[,] bhat = MathV.MatTimes(b4, y);
         return bhat;
@@ -1172,7 +1172,7 @@ namespace Stat
         }
         BigNumber[,] b1 = MathV.MatTrans(x);
         BigNumber[,] b2 = MathV.MatTimes(b1, x);
-        BigNumber[,] b3 = Stat.MatInv(b2, len12);
+        BigNumber[,] b3 = MathV.MatInv(b2, len12);
         BigNumber[,] b4 = MathV.MatTimes(b3, b1);
         BigNumber[,] bhat = MathV.MatTimes(b4, y);
         BigNumber[,] b5 = MathV.MatTimes(x, bhat);
@@ -1204,7 +1204,7 @@ namespace Stat
         BigNumber[] pvalue_b = new BigNumber[len12];
         for (int i = 0; i < len12; i++)
         {
-            pvalue_b[i] = new BigNumber(Stat.NORMSDIST(Convert.ToDouble(tvalue_b[i].ToString())).ToString());
+            pvalue_b[i] = new BigNumber(Stat.GaossFx(Convert.ToDouble(tvalue_b[i].ToString())).ToString());
         }
         return pvalue_b;
     }
@@ -1231,7 +1231,7 @@ namespace Stat
         }
         BigNumber[,] b1 = MathV.MatTrans(x);
         BigNumber[,] b2 = MathV.MatTimes(b1, x);
-        BigNumber[,] b3 = Stat.MatInv(b2, len12);
+        BigNumber[,] b3 = MathV.MatInv(b2, len12);
         BigNumber[,] b4 = MathV.MatTimes(b3, b1);
         BigNumber[,] bhat = MathV.MatTimes(b4, y);
         BigNumber[,] b5 = MathV.MatTimes(x, bhat);
@@ -1292,47 +1292,7 @@ namespace Stat
         }
         return corr;
     }
-    public static BigNumber Double2Big(Double x_bignumber)
-    {
-        string NumberStr = x_bignumber.ToString().Trim();
-        int E_position = -1;
-        int IsNegative = 0;
-        int ScientificNotation = 0;
-        string ScientificNumber;
-        BigNumber result = new BigNumber("0");
-        string Scientificupper;
-        //0为正，1为负
-        for (int i = 0; i < NumberStr.Length; i++)
-        {
-            if (NumberStr[i] == 'E' || NumberStr[i] == 'e')
-            {
-                E_position = i;
-            }
-        }
-        if (E_position != -1)
-        {
-            ScientificNotation = NumberStr.Length - E_position - 1 - 1;
-            ScientificNumber = NumberStr.Substring(E_position + 1 + 1, ScientificNotation);
-            Scientificupper = NumberStr.Substring(0, E_position - 1);
-            if (NumberStr[E_position + 1] == '-')
-            {
-                IsNegative = 1;
-                result = new BigNumber("-1") * new BigNumber(Scientificupper) * (new BigNumber("10").Power(new BigNumber(ScientificNumber)));
-                return result;
-            }
-            else
-            {
-                result = new BigNumber("1") * new BigNumber(Scientificupper) * (new BigNumber("10").Power(new BigNumber(ScientificNumber)));
-                return result;
-            }
-
-        }
-        else
-        {
-            result = new BigNumber(NumberStr);
-            return result;
-        }
-    }
+    
 
 }
 }
